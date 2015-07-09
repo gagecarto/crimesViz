@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Bozeman Crime Data</title>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <link rel="shortcut icon" href="http://cartodb.com/assets/favicon.ico" />
+    <style>
+        html,
+        body {
+            height: 100%;
+            padding: 0;
+            margin: 0;
+            font-family: "Arial Black"
+        }
+        #toolTipFloater {
+            font-size: .7em;
+            color: white;
+            display: none;
+            position: absolute;
+            z-index: 15;
+            background-color: black;
+        }
+        #map {
+            height: 100%;
+            position: relative;
+            z-index: 2;
+			width: -moz-calc(100% - 430px);
+			width: -webkit-calc(100% - 430px);
+			width: calc(100% - 430px);
+        }
+		#controlBar{
+			width:430px;	
+			height:100%;	
+			top:0%;
+			right:0%;		
+			background-color:#1F1F1F;
+			position:absolute;
+			z-index:3;
+		}
+        #pieHolder {
+            z-index: 10;
+            height: 400px;
+            width: 400px;
+            bottom: 5px;
+            position: absolute;
+            right: 0%;
+        }
+        #dateLabel {
+            z-index: 10;
+            position: absolute;
+            top: 10px;
+            right: 60px;
+            color: #17BFA0;
+            text-align: center;
+            font-size: 1.2em;
+            text-shadow: black 0.1em 0.1em 0.2em
+        }
+        #dateRange {
+            z-index: 10;
+            position: absolute;
+            top: 40px;
+            right: 30px;
+        }
+        #timeLabel {
+            z-index: 10;
+            position: absolute;
+            top: 100px;
+            right: 77px;
+            color: #17BFA0;
+            text-align: center;
+            font-size: 1.2em;
+            text-shadow: black 0.1em 0.1em 0.2em
+        }
+        #slider {
+            z-index: 10;
+            width: 150px;
+            position: absolute;
+            top: 130px;
+            right: 47px;
+        }
+        #slider2 {
+            z-index: 10;
+            width: 150px;
+            position: absolute;
+            top: 130px;
+            right: 222px;
+        }
+        #min {
+            top: 150px;
+            right: 197px;
+            z-index: 10;
+            position: absolute;
+            width: 200px;
+            text-align: center;
+            color: #17BFA0;
+        }
+        #max {
+            top: 150px;
+            right: 27px;
+            z-index: 10;
+            position: absolute;
+            width: 200px;
+            text-align: center;
+            color: #17BFA0;
+        }
+        #daysLabel {
+            z-index: 10;
+            position: absolute;
+            top: 210px;
+            right: 50px;
+            color: #17BFA0;
+            text-align: center;
+            font-size: 1.2em;
+            text-shadow: black 0.1em 0.1em 0.2em
+        }
+        #buttonsGroup {
+            z-index: 10;
+            position: absolute;
+            top: 245px;
+            right: 30px;
+            font-size: .7em;
+        }
+		#infoDiv {
+            z-index: 10;
+            position: absolute;
+            width: 375px;
+            top: 300px;
+            right: 25px;
+            font-weight: bold;
+            font-size: 1em;
+            color: #17BFA0;
+            text-align: center;
+            text-shadow: black 0.1em 0.1em 0.2em
+        }
+		@media all and (max-device-width: 768px) {
+	  	#infoDiv {
+            z-index: 10;
+            position: absolute;
+            width: 375px;
+            top: 300px;
+            right: 25px;
+            font-weight: bold;
+            font-size: .7em;
+            color: #17BFA0;
+            text-align: center;
+            text-shadow: black 0.1em 0.1em 0.2em
+        }
+		}
+        
+    </style>
+
+    <script src="http://libs.cartocdn.com/cartodb.js/v3/cartodb.js"></script>
+    <script src="js/mapActions.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <script>
+	  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+	
+	  ga('create', 'UA-35504512-2', 'gagecartographics.com');
+	  ga('send', 'pageview');	
+	</script>    
+
+    <link rel="stylesheet" href="http://libs.cartocdn.com/cartodb.js/v3/themes/css/cartodb.css" />
+    <!--[if lte IE 8]>
+        <link rel="stylesheet" href="http://libs.cartocdn.com/cartodb.js/v3/themes/css/cartodb.ie.css"/>
+    <![endif]-->
+
+    <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/themes/dark-hive/jquery-ui.min.css" />
+
+</head>
+
+<body>
+    <div id="map"></div>
+    
+    <div id='welcomeDialog' title="Bozeman Crime Data Explorer">Welcome to the Bozeman Crime Data Explorer. This application was built to help share data on crime occurrence with the public. Data was provided by Gallatin County E911 and the Bozeman Police Department. There are over 52,000 crime incidents you can explore using this application. Areas and circles with darker reds are indicative of overlapping crimes and higher crime densities.<br><br>You can selected different time periods from the control bar on the right. The crime data on the map will update based on the times you select as will the pie chart.<br><br>This application uses modern web browser technologies and for an optimal experience it is highly recommended that your browser is updated. Also, this map has not yet been optimized for mobile devices so there may be some overlapping elements on smaller screens.<br><br>Please direct any questions to Gage Cartographics - info@gagecartographics.com</div>
+
+    <a href="http://www.gagecartographics.com" style="position:absolute; z-index:10; top:2px; right:440px; text-align:center;">
+        <img src="weblogo-01.png">
+    </a>
+
+    <div id="pieHolder"></div>
+    
+    <div id="controlBar"></div>
+
+    <span id="dateLabel">SELECT A RANGE OF DATES</span>
+    <div id='dateRange'>
+        <label for="from" style="color:#17BFA0; font-size:1.2em;">from</label>
+        <input type="text" id="from" name="from" value='01/01/2013' autocomplete=off>
+        <label for="to" style="color:#17BFA0; font-size:1.2em;">to</label>
+        <input type="text" id="to" name="to" value='11/30/2013' autocomplete=off>
+    </div>
+
+    <span id="timeLabel">SELECT A TIME RANGE</span>	
+    <div id="slider"></div>
+
+    <div id="slider2"></div>
+
+    <div id="min">from 12:00am</div>
+    <div id="max">to 12:00am</div>
+
+
+
+    <span id="daysLabel">SELECT DAYS OF THE WEEK</span>	
+    <div id="checks">
+        <form id="buttonsGroup">
+            <input type="checkbox" id="1d" onclick='dayClick(id);' />
+            <label for="1d">Mon</label>
+            <input type="checkbox" id="2d" onclick='dayClick(id);' />
+            <label for="2d">Tue</label>
+            <input type="checkbox" id="3d" onclick='dayClick(id);' />
+            <label for="3d">Wed</label>
+            <input type="checkbox" id="4d" onclick='dayClick(id);' />
+            <label for="4d">Thu</label>
+            <input type="checkbox" id="5d" onclick='dayClick(id);' />
+            <label for="5d">Fri</label>
+            <input type="checkbox" id="6d" onclick='dayClick(id);' />
+            <label for="6d">Sat</label>
+            <input type="checkbox" id="0d" onclick='dayClick(id);' />
+            <label for="0d">Sun</label>
+        </form>
+    </div>
+    
+    <div id="shareDiv" style="position:absolute; bottom:0px; right:10px; z-index:10;">
+    <a href="https://twitter.com/share" class="twitter-share-button" data-url="http://www.gagecartographics.com/crimes/index.html" data-via="gageCarto" data-size="small" data-count="none">Tweet</a>
+    </div>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+
+
+    <div id='infoDiv'></div>
+
+</body>
+
+</html>
